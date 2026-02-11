@@ -5,29 +5,31 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MultiUser-WikiStats</title>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; margin: 20px auto; max-width: 900px; line-height: 1.4; background: #f8f9fa; color: #202122; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; margin: 20px auto; max-width: 950px; line-height: 1.4; background: #f8f9fa; color: #202122; }
         .container { background: white; padding: 25px; border: 1px solid #c8ccd1; border-radius: 2px; box-shadow: 0 1px 1px rgba(0,0,0,0.05); }
         h2 { border-bottom: 1px solid #a2a9b1; padding-bottom: 10px; margin-top: 0; color: #36c; }
-        .search-container { position: relative; margin-bottom: 20px; }
-        #userSearch { width: 100%; padding: 12px; border: 2px solid #36c; border-radius: 4px; font-size: 16px; box-sizing: border-box; }
-        #suggestions { position: absolute; width: 100%; background: white; border: 1px solid #ccc; z-index: 1000; max-height: 200px; overflow-y: auto; display: none; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        .input-section { margin-bottom: 20px; padding: 15px; background: #fcfcfc; border: 1px solid #e2e2e2; border-radius: 4px; }
+        .search-container { position: relative; margin-bottom: 10px; }
+        #userSearch { width: 100%; padding: 12px; border: 2px solid #36c; border-radius: 4px; font-size: 15px; box-sizing: border-box; }
+        #suggestions { position: absolute; width: 100%; background: white; border: 1px solid #ccc; z-index: 1000; max-height: 180px; overflow-y: auto; display: none; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
         .suggestion-item { padding: 10px; cursor: pointer; border-bottom: 1px solid #eee; }
         .suggestion-item:hover { background: #eaf3ff; }
-        .chip-container { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 15px; border: 1px inset #eee; padding: 10px; min-height: 40px; border-radius: 4px; }
-        .chip { background: #36c; color: white; padding: 5px 12px; border-radius: 16px; display: flex; align-items: center; gap: 8px; font-size: 14px; }
-        .chip span { cursor: pointer; font-weight: bold; }
+        .bulk-area { width: 100%; height: 80px; padding: 10px; border: 1px solid #a2a9b1; border-radius: 4px; font-family: monospace; box-sizing: border-box; margin-top: 10px; }
+        .chip-container { display: flex; flex-wrap: wrap; gap: 8px; margin: 15px 0; border: 1px inset #eee; padding: 10px; min-height: 40px; border-radius: 4px; background: #fff; }
+        .chip { background: #36c; color: white; padding: 5px 12px; border-radius: 16px; display: flex; align-items: center; gap: 8px; font-size: 13px; }
+        .chip span { cursor: pointer; font-weight: bold; background: rgba(255,255,255,0.2); border-radius: 50%; width: 16px; height: 16px; display: inline-flex; align-items: center; justify-content: center; }
         .flex { display: flex; gap: 10px; margin-bottom: 15px; }
         .flex div { flex: 1; }
         input, select { padding: 8px; border: 1px solid #a2a9b1; width: 100%; box-sizing: border-box; border-radius: 2px; }
-        button { background: #36c; color: white; padding: 12px; border: none; cursor: pointer; width: 100%; font-weight: bold; font-size: 16px; border-radius: 2px; }
-        button:hover { background: #447ff5; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        .btn-main { background: #36c; color: white; padding: 12px; border: none; cursor: pointer; width: 100%; font-weight: bold; font-size: 16px; border-radius: 2px; }
+        .btn-secondary { background: #72777d; color: white; padding: 8px; border: none; cursor: pointer; margin-top: 5px; font-size: 13px; border-radius: 2px; }
+        button:hover { opacity: 0.9; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 14px; }
         th, td { border: 1px solid #a2a9b1; padding: 10px; text-align: left; }
         th { background: #f8f9fa; }
         .total-row { background: #eee; font-weight: bold; }
         .status { padding: 10px; background: #fff3cd; margin: 10px 0; display: none; border-radius: 2px; text-align: center; font-weight: bold; }
         td a { color: #36c; text-decoration: none; font-weight: bold; }
-        td a:hover { text-decoration: underline; }
     </style>
 </head>
 <body>
@@ -46,25 +48,36 @@
             </select>
         </div>
         <div id="langDiv">
-            <label>Language:</label>
+            <label>Language Code:</label>
             <input type="text" id="lang" value="pa">
         </div>
     </div>
 
-    <div class="search-container">
-        <label>Search & Add Usernames:</label>
-        <input type="text" id="userSearch" placeholder="Search for a user..." autocomplete="off">
-        <div id="suggestions"></div>
+    <div class="input-section">
+        <div class="search-container">
+            <label>Option 1: Search & Add Live</label>
+            <input type="text" id="userSearch" placeholder="Type to find user..." autocomplete="off">
+            <div id="suggestions"></div>
+        </div>
+
+        <div style="margin-top:15px;">
+            <label>Option 2: Paste List (Comma or New Line)</label>
+            <textarea id="bulkInput" class="bulk-area" placeholder="User1, User2, User3..."></textarea>
+            <button class="btn-secondary" onclick="importBulk()">Add to Selection</button>
+        </div>
     </div>
 
     <div class="chip-container" id="chipContainer"></div>
+    <div style="text-align: right; margin-bottom: 10px;">
+        <small style="color:#666; cursor:pointer;" onclick="clearAll()">[Clear All Users]</small>
+    </div>
 
     <div class="flex">
         <div><label>Start Date:</label><input type="date" id="start"></div>
         <div><label>End Date:</label><input type="date" id="end"></div>
     </div>
 
-    <button onclick="run()">Generate Stats</button>
+    <button class="btn-main" onclick="run()">Generate Report</button>
 
     <div id="status" class="status"></div>
 
@@ -91,6 +104,7 @@ function toggleLang() {
     document.getElementById('langDiv').style.display = (p === 'wikidata' || p === 'commons') ? 'none' : 'block';
 }
 
+// LIVE SEARCH
 const searchInput = document.getElementById('userSearch');
 const suggestionsDiv = document.getElementById('suggestions');
 
@@ -115,10 +129,21 @@ searchInput.addEventListener('input', async () => {
 });
 
 function addUser(name) {
-    selectedUsers.add(name);
-    renderChips();
+    if(name) {
+        selectedUsers.add(name);
+        renderChips();
+    }
     searchInput.value = '';
     suggestionsDiv.style.display = 'none';
+}
+
+function importBulk() {
+    const raw = document.getElementById('bulkInput').value;
+    // Split by comma OR new line
+    const names = raw.split(/[,\n]/).map(n => n.trim()).filter(n => n);
+    names.forEach(n => selectedUsers.add(n));
+    renderChips();
+    document.getElementById('bulkInput').value = '';
 }
 
 function renderChips() {
@@ -133,13 +158,14 @@ function renderChips() {
 }
 
 function removeUser(name) { selectedUsers.delete(name); renderChips(); }
+function clearAll() { selectedUsers.clear(); renderChips(); }
 
 async function run() {
     const proj = document.getElementById('project').value;
     const startVal = document.getElementById('start').value;
     const endVal = document.getElementById('end').value;
     
-    if(selectedUsers.size === 0 || !startVal || !endVal) return alert("Please select users and dates.");
+    if(selectedUsers.size === 0 || !startVal || !endVal) return alert("Please add users and select dates.");
 
     const start = startVal + "T00:00:00Z";
     const end = endVal + "T23:59:59Z";
@@ -147,7 +173,7 @@ async function run() {
     
     const status = document.getElementById('status');
     status.style.display = "block";
-    status.innerText = "Processing live API data...";
+    status.innerText = "Analyzing history... this may take a moment for large lists.";
 
     let specialLabel = "New Articles";
     if(proj === 'wikidata') specialLabel = "New Items";
